@@ -7,33 +7,30 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
 
-<!-- Firebase -->
+<!-- Firebase — Spark Plan (no Storage) -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, setDoc, query, orderBy, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, setDoc, query, orderBy, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  // ── YOUR FIREBASE CONFIG ──
-  // Replace with your own Firebase project config
+  // ── ARNOREX e-MARKET FIREBASE CONFIG ──
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyAL26DIGBAVbmZOvDrEbM5DfVVGMGOZZ-U",
+    authDomain: "arnorex-emarket.firebaseapp.com",
+    projectId: "arnorex-emarket",
+    storageBucket: "arnorex-emarket.firebasestorage.app",
+    messagingSenderId: "278041147544",
+    appId: "1:278041147544:web:809779357b2ad69c5d78ed"
   };
 
-  const app  = initializeApp(firebaseConfig);
-  const db   = getFirestore(app);
-  const auth = getAuth(app);
-  const storage = getStorage(app);
+  const app      = initializeApp(firebaseConfig);
+  const db       = getFirestore(app);
+  const auth     = getAuth(app);
   const provider = new GoogleAuthProvider();
 
-  // ── EXPOSE TO GLOBAL ──
+  // ── EXPOSE TO GLOBAL (no storage) ──
   window._fb = {
-    db, auth, storage, provider,
+    db, auth, provider,
     collection, doc, getDocs, getDoc, addDoc, updateDoc,
     deleteDoc, setDoc, query, orderBy, where, serverTimestamp,
     signInWithPopup, signOut, GoogleAuthProvider
@@ -506,11 +503,8 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
 .upload-area .ua-icon{font-size:32px;margin-bottom:8px;}
 .upload-area p{font-size:13px;color:var(--text2);}
 .upload-area span{font-size:11px;color:var(--text3);}
-#upload-img-input{display:none;}
-.img-preview-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
 .img-preview{width:72px;height:72px;border-radius:var(--radius-sm);overflow:hidden;position:relative;border:2px solid var(--border);}
 .img-preview img{width:100%;height:100%;object-fit:cover;}
-.img-preview-del{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(239,68,68,.9);border:none;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 
 /* ─── TOAST ─── */
@@ -870,13 +864,13 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
 
     <!-- ADD PRODUCT -->
     <div class="admin-section active" id="admin-add">
-      <div class="upload-area" onclick="document.getElementById('upload-img-input').click()">
-        <div class="ua-icon">📸</div>
-        <p>Click to upload product images</p>
-        <span>Supports: JPG, PNG, WEBP — or paste image URLs below</span>
+      <div class="form-field">
+        <label>Product Image URL *</label>
+        <input type="url" id="productImageUrl" placeholder="Paste Image URL here (e.g. https://images.unsplash.com/...)" oninput="previewAdminImage(this.value)"/>
+        <div id="admin-img-preview" style="margin-top:10px;display:none">
+          <img id="admin-img-preview-img" src="" alt="Preview" style="width:100%;max-height:180px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border)"/>
+        </div>
       </div>
-      <input type="file" id="upload-img-input" multiple accept="image/*" onchange="handleImageUpload(this)"/>
-      <div class="img-preview-row" id="img-previews"></div>
       <div class="form-grid-2">
         <div class="form-field"><label>Product Name *</label><input type="text" id="ap-name" placeholder="e.g. Samsung Galaxy A55"/></div>
         <div class="form-field"><label>Category *</label>
@@ -909,7 +903,6 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
           </select>
         </div>
       </div>
-      <div class="form-field"><label>Image URLs (comma-separated, if not uploading)</label><input type="text" id="ap-img-urls" placeholder="https://..., https://..."/></div>
       <div class="form-field"><label>Description *</label><textarea id="ap-desc" placeholder="Detailed product description..."></textarea></div>
       <div style="display:flex;gap:10px;margin-top:4px">
         <button class="btn btn-gold" style="flex:1;justify-content:center;padding:12px" onclick="saveProduct()">💾 Save Product</button>
@@ -955,7 +948,6 @@ var CURRENT_PRODUCT = null; // Product currently shown in modal
 var MODAL_QTY     = 1;
 var ACTIVE_CAT    = 'all';
 var ACTIVE_STOCK  = 'all';
-var UPLOAD_IMAGES = []; // {file, url, isURL} for admin upload
 var ALL_ADMIN_PRODUCTS = [];
 var EDIT_PRODUCT_ID = null;
 
@@ -1429,7 +1421,6 @@ function openAdmin() {
 function closeAdmin() {
   document.getElementById('admin-panel').classList.remove('open');
   EDIT_PRODUCT_ID = null;
-  UPLOAD_IMAGES = [];
   clearAddForm();
 }
 
@@ -1441,80 +1432,40 @@ function switchAdminTab(tab, el) {
   if (tab === 'manage') loadAdminProducts();
 }
 
-function handleImageUpload(input) {
-  var files = Array.from(input.files);
-  files.forEach(function(file) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      UPLOAD_IMAGES.push({ file:file, url:e.target.result, isFile:true });
-      renderImagePreviews();
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-function renderImagePreviews() {
-  var el = document.getElementById('img-previews');
-  if (!el) return;
-  el.innerHTML = UPLOAD_IMAGES.map(function(img, i) {
-    return '<div class="img-preview">' +
-      '<img src="'+img.url+'"/>' +
-      '<button class="img-preview-del" onclick="removeUploadImg('+i+')">✕</button>' +
-    '</div>';
-  }).join('');
-}
-
-function removeUploadImg(idx) {
-  UPLOAD_IMAGES.splice(idx, 1);
-  renderImagePreviews();
+// Shows a live preview of the pasted image URL in the admin panel
+function previewAdminImage(url) {
+  var wrap = document.getElementById('admin-img-preview');
+  var img  = document.getElementById('admin-img-preview-img');
+  if (!wrap || !img) return;
+  if (url && url.startsWith('http')) {
+    img.src = url;
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+  }
 }
 
 async function saveProduct() {
-  var name     = document.getElementById('ap-name').value.trim();
-  var category = document.getElementById('ap-category').value;
-  var price    = parseFloat(document.getElementById('ap-price').value);
-  var priceOld = parseFloat(document.getElementById('ap-price-old').value) || null;
-  var stock    = document.getElementById('ap-stock').value;
-  var badge    = document.getElementById('ap-badge').value || null;
-  var desc     = document.getElementById('ap-desc').value.trim();
-  var urlInput = document.getElementById('ap-img-urls').value.trim();
+  var name      = document.getElementById('ap-name').value.trim();
+  var category  = document.getElementById('ap-category').value;
+  var price     = parseFloat(document.getElementById('ap-price').value);
+  var priceOld  = parseFloat(document.getElementById('ap-price-old').value) || null;
+  var stock     = document.getElementById('ap-stock').value;
+  var badge     = document.getElementById('ap-badge').value || null;
+  var desc      = document.getElementById('ap-desc').value.trim();
+  var imageURL  = document.getElementById('productImageUrl').value.trim();
 
   if (!name || !category || !price || !desc) { toast('Please fill in all required fields', true); return; }
 
   var saveBtn = document.querySelector('#admin-add .btn-gold');
-  if (saveBtn) { saveBtn.disabled=true; saveBtn.textContent='Saving...'; }
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
 
   try {
-    var imageURLs = [];
-
-    // Upload files to Firebase Storage if available
-    if (window._fb && window._fb.storage && UPLOAD_IMAGES.length) {
-      for (var i=0; i<UPLOAD_IMAGES.length; i++) {
-        var img = UPLOAD_IMAGES[i];
-        if (img.isFile && img.file) {
-          try {
-            var storageRef = window._fb.ref(window._fb.storage, 'products/' + Date.now() + '_' + img.file.name);
-            var uploadSnap = await window._fb.uploadBytes(storageRef, img.file);
-            var downloadURL = await window._fb.getDownloadURL(uploadSnap.ref);
-            imageURLs.push(downloadURL);
-          } catch(uploadErr) {
-            console.warn('Upload failed, using local URL:', uploadErr);
-            imageURLs.push(img.url); // fallback to base64
-          }
-        } else {
-          imageURLs.push(img.url);
-        }
-      }
-    }
-
-    // Add URL-typed images
-    if (urlInput) {
-      urlInput.split(',').forEach(function(u){ var t=u.trim(); if(t) imageURLs.push(t); });
-    }
-
     var productData = {
-      name, category, price, priceOld, stock, badge, description:desc,
-      images: imageURLs,
+      name, category, price, priceOld, stock, badge,
+      description: desc,
+      image: imageURL,         // single URL string saved directly
+      images: imageURL ? [imageURL] : [],  // array for display compatibility
       createdAt: window._fb ? window._fb.serverTimestamp() : Date.now()
     };
 
@@ -1528,7 +1479,7 @@ async function saveProduct() {
         toast('✓ Product added to store!');
       }
     } else {
-      // Demo mode: add to local array with fake ID
+      // Demo mode fallback
       productData.id = 'local-' + Date.now();
       productData.createdAt = Date.now();
       ALL_PRODUCTS.unshift(productData);
@@ -1536,14 +1487,13 @@ async function saveProduct() {
     }
 
     EDIT_PRODUCT_ID = null;
-    UPLOAD_IMAGES = [];
     clearAddForm();
     await loadProducts();
     loadAdminProducts();
   } catch(e) {
     toast('Error saving product: ' + e.message, true);
   } finally {
-    if (saveBtn) { saveBtn.disabled=false; saveBtn.textContent='💾 Save Product'; }
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 Save Product'; }
   }
 }
 
@@ -1628,27 +1578,27 @@ function editProduct(productId) {
   var p = ALL_ADMIN_PRODUCTS.find(function(x){ return x.id===productId; });
   if (!p) return;
   EDIT_PRODUCT_ID = productId;
-  document.getElementById('ap-name').value     = p.name||'';
-  document.getElementById('ap-category').value = p.category||'';
-  document.getElementById('ap-price').value    = p.price||'';
-  document.getElementById('ap-price-old').value= p.priceOld||'';
-  document.getElementById('ap-stock').value    = p.stock||'in';
-  document.getElementById('ap-badge').value    = p.badge||'';
-  document.getElementById('ap-desc').value     = p.description||'';
-  document.getElementById('ap-img-urls').value = (p.images||[]).join(', ');
-  UPLOAD_IMAGES = (p.images||[]).map(function(url){ return {url:url,isFile:false}; });
-  renderImagePreviews();
+  document.getElementById('ap-name').value      = p.name||'';
+  document.getElementById('ap-category').value  = p.category||'';
+  document.getElementById('ap-price').value     = p.price||'';
+  document.getElementById('ap-price-old').value = p.priceOld||'';
+  document.getElementById('ap-stock').value     = p.stock||'in';
+  document.getElementById('ap-badge').value     = p.badge||'';
+  document.getElementById('ap-desc').value      = p.description||'';
+  var existingURL = (p.images && p.images[0]) || p.image || '';
+  document.getElementById('productImageUrl').value = existingURL;
+  previewAdminImage(existingURL);
   switchAdminTab('add', document.querySelector('.admin-tab'));
   toast('Editing: ' + p.name);
 }
 
 function clearAddForm() {
-  ['ap-name','ap-category','ap-price','ap-price-old','ap-stock','ap-badge','ap-desc','ap-img-urls'].forEach(function(id){
+  ['ap-name','ap-category','ap-price','ap-price-old','ap-stock','ap-badge','ap-desc','productImageUrl'].forEach(function(id){
     var el = document.getElementById(id);
-    if (el) el.value = el.tagName==='SELECT' ? (id==='ap-stock'?'in':'') : '';
+    if (el) el.value = (el.tagName === 'SELECT' && id === 'ap-stock') ? 'in' : '';
   });
-  UPLOAD_IMAGES = [];
-  renderImagePreviews();
+  var preview = document.getElementById('admin-img-preview');
+  if (preview) preview.style.display = 'none';
   EDIT_PRODUCT_ID = null;
 }
 
@@ -1696,4 +1646,4 @@ document.addEventListener('keydown', function(e) {
 // Prevent modal scroll propagation
 document.getElementById('product-modal').addEventListener('wheel', function(e){ e.stopPropagation(); });
 </script>
-</html>
+  </html>
