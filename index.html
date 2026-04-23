@@ -571,6 +571,58 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
 @media(prefers-reduced-motion:reduce){
   *{transition:none!important;animation:none!important;}
 }
+
+/* ─── DALALI MTANDAONI ─── */
+.dalali-btn{color:#7dd3fc!important;}
+.dalali-btn.active{color:#38bdf8!important;border-bottom-color:#38bdf8!important;}
+.dalali-sb{border-left-color:transparent;}
+.dalali-sb.active{background:rgba(56,189,248,.08)!important;border-left-color:#38bdf8!important;}
+.dalali-sb.active label{color:#38bdf8!important;}
+.dalali-card .prod-img-wrap{border-top:3px solid #38bdf8;}
+.wasiliana-btn{
+  background:linear-gradient(135deg,#0ea5e9,#0284c7);
+  color:#fff;border:none;border-radius:var(--radius-sm);
+  padding:6px 12px;font-size:11.5px;font-weight:700;
+  font-family:'Outfit',sans-serif;cursor:pointer;transition:var(--transition);
+  display:flex;align-items:center;gap:4px;
+}
+.wasiliana-btn:hover{transform:scale(1.05);box-shadow:0 4px 12px rgba(14,165,233,.4);}
+
+/* ─── UNIFORM IMAGE HEIGHT (all cards) ─── */
+.prod-img-wrap{
+  position:relative;overflow:hidden;
+  height:200px!important;          /* fixed height — uniform grid */
+  aspect-ratio:unset!important;
+  background:var(--surface2);
+}
+.prod-img-wrap img{
+  width:100%;height:100%;
+  object-fit:cover;
+  position:absolute;top:0;left:0;
+  transition:opacity .6s ease, transform .4s cubic-bezier(.4,0,.2,1)!important;
+}
+.prod-card:hover .prod-img-wrap img.slider-active{transform:scale(1.07);}
+
+/* ─── AUTO-SLIDER / CROSSFADE ─── */
+.prod-img-wrap img.slider-active{opacity:1;z-index:1;}
+.prod-img-wrap img.slider-hidden{opacity:0;z-index:0;}
+
+/* ─── CATEGORY BADGE (corner of image) ─── */
+.cat-badge{
+  position:absolute;bottom:8px;right:8px;z-index:4;
+  font-size:9px;font-weight:800;letter-spacing:.8px;
+  padding:3px 8px;border-radius:4px;text-transform:uppercase;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.85);
+}
+.cat-badge.cat-electronics{color:#60a5fa;border-color:rgba(96,165,250,.3);}
+.cat-badge.cat-construction{color:#fb923c;border-color:rgba(251,146,60,.3);}
+.cat-badge.cat-office{color:#a78bfa;border-color:rgba(167,139,250,.3);}
+.cat-badge.cat-home{color:#34d399;border-color:rgba(52,211,153,.3);}
+.cat-badge.cat-fashion{color:#f472b6;border-color:rgba(244,114,182,.3);}
+.cat-badge.cat-food{color:#fbbf24;border-color:rgba(251,191,36,.3);}
+.cat-badge.cat-dalali{color:#38bdf8;border-color:rgba(56,189,248,.3);}
+.cat-badge.cat-other{color:var(--text2);}
 </style>
 </head>
 <body>
@@ -617,6 +669,7 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
   <button class="cat-btn" data-cat="fashion" onclick="filterCategory('fashion',this)"><span class="cat-icon">👗</span> Fashion</button>
   <button class="cat-btn" data-cat="food" onclick="filterCategory('food',this)"><span class="cat-icon">🥩</span> Food & Groceries</button>
   <button class="cat-btn" data-cat="other" onclick="filterCategory('other',this)"><span class="cat-icon">📦</span> Other</button>
+  <button class="cat-btn dalali-btn" data-cat="dalali" onclick="filterCategory('dalali',this)"><span class="cat-icon">🏠</span> Dalali Mtandaoni</button>
 </nav>
 
 <!-- ═══ MAIN LAYOUT ═══ -->
@@ -648,6 +701,9 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
     </div>
     <div class="sb-filter-item" data-cat="other" onclick="filterCategory('other',null,this)">
       <label>📦 Other</label><span class="count" id="count-other">0</span>
+    </div>
+    <div class="sb-filter-item dalali-sb" data-cat="dalali" onclick="filterCategory('dalali',null,this)">
+      <label>🏠 Dalali Mtandaoni</label><span class="count" id="count-dalali">0</span>
     </div>
 
     <div class="sb-divider"></div>
@@ -751,6 +807,7 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
     <a onclick="filterCategory('office',null)">Office Supplies</a>
     <a onclick="filterCategory('home',null)">Home & Living</a>
     <a onclick="filterCategory('food',null)">Food & Groceries</a>
+    <a onclick="filterCategory('dalali',null)">🏠 Dalali Mtandaoni</a>
   </div>
   <div class="footer-col">
     <h4>Information</h4>
@@ -795,7 +852,7 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
         </div>
         <div class="modal-stock-row" id="modal-stock-row"></div>
         <p class="modal-desc" id="modal-desc"></p>
-        <div class="modal-qty-row">
+        <div class="modal-qty-row" id="modal-qty-row">
           <span class="qty-label">Quantity:</span>
           <div class="qty-ctrl">
             <button class="qty-btn" onclick="changeModalQty(-1)">−</button>
@@ -865,8 +922,8 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
     <!-- ADD PRODUCT -->
     <div class="admin-section active" id="admin-add">
       <div class="form-field">
-        <label>Product Image URL *</label>
-        <input type="url" id="productImageUrl" placeholder="Paste Image URL here (e.g. https://images.unsplash.com/...)" oninput="previewAdminImage(this.value)"/>
+        <label>Product Image URLs * <span style="color:var(--text3);font-size:10px;font-weight:400;text-transform:none">(Separate multiple with commas for carousel)</span></label>
+        <input type="text" id="productImageUrl" placeholder="Paste Image URL here — e.g. https://url1.jpg, https://url2.jpg, https://url3.jpg" oninput="previewAdminImage(this.value.split(',')[0].trim())"/>
         <div id="admin-img-preview" style="margin-top:10px;display:none">
           <img id="admin-img-preview-img" src="" alt="Preview" style="width:100%;max-height:180px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border)"/>
         </div>
@@ -883,6 +940,7 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
             <option value="fashion">Fashion</option>
             <option value="food">Food & Groceries</option>
             <option value="other">Other</option>
+            <option value="dalali">🏠 Dalali Mtandaoni</option>
           </select>
         </div>
         <div class="form-field"><label>Price (TZS) *</label><input type="number" id="ap-price" placeholder="e.g. 250000"/></div>
@@ -964,7 +1022,10 @@ var DEMO_PRODUCTS = [
   {id:'demo-9', name:'3-Piece Business Suit — Navy', category:'fashion', price:380000, priceOld:null, badge:'new', stock:'in', description:'Premium slim-fit business suit. Available in M, L, XL, XXL. 100% polyester lining, wrinkle-resistant fabric.', images:['https://images.unsplash.com/photo-1594938298603-c8148c4b4415?w=600&q=80']},
   {id:'demo-10', name:'Halal Beef — Premium Cut (1kg)', category:'food', price:28000, priceOld:null, badge:'new', stock:'in', description:'Fresh premium halal beef cuts from certified farms. Perfect for your family. Order minimum 2kg for delivery.', images:['https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=600&q=80']},
   {id:'demo-11', name:'4K Smart LED TV — 55 inch', category:'electronics', price:1250000, priceOld:1450000, badge:'sale', stock:'in', description:'4K UHD display, Android TV 11, built-in WiFi, HDMI × 3, USB × 2. Google Assistant and Chromecast built-in.', images:['https://images.unsplash.com/photo-1593359677879-a4bb92f829e1?w=600&q=80']},
-  {id:'demo-12', name:'Power Drill Set — 20-piece', category:'construction', price:145000, priceOld:null, badge:null, stock:'in', description:'Complete drill bit and screwdriver set. HSS bits for wood, metal, and masonry. Comes in durable carry case.', images:['https://images.unsplash.com/photo-1587293852726-70cdb56c2866?w=600&q=80']}
+  {id:'demo-12', name:'Power Drill Set — 20-piece', category:'construction', price:145000, priceOld:null, badge:null, stock:'in', description:'Complete drill bit and screwdriver set. HSS bits for wood, metal, and masonry. Comes in durable carry case.', images:['https://images.unsplash.com/photo-1587293852726-70cdb56c2866?w=600&q=80']},
+  {id:'demo-13', name:'Nyumba ya Kupanga — Mikocheni B', category:'dalali', price:450000, priceOld:null, badge:'new', stock:'in', description:'Nyumba nzuri ya kupanga Mikocheni B, Dar es Salaam. Vyumba 3 vya kulala, sebule kubwa, jiko, bafuni 2. Maji na umeme vipo. Karibu na barabara kuu. Wasiliana sasa kwa maelezo zaidi.', images:['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80','https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=600&q=80']},
+  {id:'demo-14', name:'Plot ya Kuuza — Mbezi Beach', category:'dalali', price:25000000, priceOld:null, badge:'hot', stock:'in', description:'Plot nzuri ya ujenzi Mbezi Beach, jirani na bahari. Eneo: 800 sqm, hati ipo. Mazingira mazuri, amani. Tosha kwa nyumba ya familia au biashara ya hoteli.', images:['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80']},
+  {id:'demo-15', name:'Gari la Kuuza — Toyota Fielder 2018', category:'dalali', price:32000000, priceOld:36000000, badge:'sale', stock:'in', description:'Toyota Fielder 2018, rangi nyeupe, engine 1500cc. Mwendo mdogo, hali nzuri sana. Mkoba zote zipo. Wasiliana kwa test drive na ukaguzi.', images:['https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&q=80','https://images.unsplash.com/photo-1502877338535-766e1452684a?w=600&q=80']}
 ];
 
 // ── INIT ──
@@ -1052,46 +1113,93 @@ function renderProducts() {
   var grid = document.getElementById('product-grid');
   if (!grid) return;
 
+  // Stop all running sliders before re-render
+  stopAllSliders();
+
   if (!SHOWN_PRODUCTS.length) {
     grid.innerHTML = '<div class="empty-state"><div class="es-icon">📭</div><p>No products found. Try a different filter or search term.</p></div>';
     return;
   }
 
+  // Category badge labels & CSS classes
+  var catLabels = {
+    electronics:'TECH', construction:'TOOLS', office:'OFFICE',
+    home:'HOME', fashion:'STYLE', food:'FOOD',
+    dalali:'DALALI', other:'OTHER'
+  };
+  var catCls = {
+    electronics:'cat-electronics', construction:'cat-construction', office:'cat-office',
+    home:'cat-home', fashion:'cat-fashion', food:'cat-food',
+    dalali:'cat-dalali', other:'cat-other'
+  };
+
   grid.innerHTML = SHOWN_PRODUCTS.map(function(p, i) {
-    var imgs     = p.images || (p.image ? [p.image] : []);
-    var thumb    = imgs[0] || 'https://via.placeholder.com/300x300/242529/f0a500?text=Product';
+    var imgs    = p.images || (p.image ? [p.image] : []);
+    if (!imgs.length) imgs = ['https://via.placeholder.com/400x200/242529/f0a500?text=No+Image'];
+    var isDalali = p.category === 'dalali';
     var discount = p.priceOld ? Math.round((1 - p.price/p.priceOld)*100) : 0;
+
+    // Status badge (top-left)
     var badgeHtml = '';
     if (p.badge === 'sale' && discount > 0) badgeHtml = '<div class="prod-badge badge-sale">-'+discount+'%</div>';
     else if (p.badge === 'new')  badgeHtml = '<div class="prod-badge badge-new">New</div>';
     else if (p.badge === 'hot')  badgeHtml = '<div class="prod-badge badge-hot">🔥 Hot</div>';
     else if (p.stock === 'out')  badgeHtml = '<div class="prod-badge badge-out">Out of Stock</div>';
-    var stockHtml = p.stock === 'in' ? '<span class="prod-stock stock-in">● In Stock</span>'
-                  : p.stock === 'limited' ? '<span class="prod-stock" style="color:var(--gold)">● Limited</span>'
-                  : '<span class="prod-stock stock-out">● Out of Stock</span>';
-    var cartBtnDisabled = p.stock === 'out' ? 'disabled' : '';
-    var cartBtnText = p.stock === 'out' ? 'Sold Out' : '+ Cart';
-    return '<div class="prod-card" style="animation-delay:'+i*0.04+'s" onclick="openProduct(\''+p.id+'\')">' +
-      '<div class="prod-img-wrap">' +
-        '<img src="'+thumb+'" alt="'+esc(p.name)+'" loading="lazy"/>' +
-        badgeHtml +
-        '<div class="quick-view-overlay"><button class="quick-view-btn" onclick="event.stopPropagation();openProduct(\''+p.id+'\')">Quick View</button></div>' +
-      '</div>' +
-      '<div class="prod-info">' +
-        '<div class="prod-category">'+(p.category||'other')+'</div>' +
-        '<div class="prod-name">'+esc(p.name||'')+'</div>' +
-        '<div class="prod-price-row">' +
-          '<div class="prod-price">'+fmtPrice(p.price)+'</div>' +
-          (p.priceOld ? '<div class="prod-price-old">'+fmtPrice(p.priceOld)+'</div>' : '') +
-          (discount > 0 ? '<div class="prod-discount">-'+discount+'%</div>' : '') +
-        '</div>' +
-        '<div class="prod-footer">' +
-          stockHtml +
-          '<button class="add-cart-btn" '+cartBtnDisabled+' onclick="event.stopPropagation();addToCart(\''+p.id+'\')">'+cartBtnText+'</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
+
+    // Category badge (bottom-right of image)
+    var catLabel = catLabels[p.category] || 'OTHER';
+    var catClass = catCls[p.category]    || 'cat-other';
+    var catBadgeHtml = '<div class="cat-badge '+catClass+'">'+catLabel+'</div>';
+
+    // Multi-image slider HTML — each img stacked, first active
+    var imgHtml = imgs.map(function(url, idx) {
+      return '<img src="'+esc(url)+'" alt="'+esc(p.name)+'" loading="lazy"'
+           + ' class="'+(idx===0?'slider-active':'slider-hidden')+'"'
+           + ' data-idx="'+idx+'"/>';
+    }).join('');
+
+    // Stock text
+    var stockHtml = p.stock === 'in'
+      ? '<span class="prod-stock stock-in">● '+(isDalali?'Inapatikana':'In Stock')+'</span>'
+      : p.stock === 'limited'
+      ? '<span class="prod-stock" style="color:var(--gold)">● Limited</span>'
+      : '<span class="prod-stock stock-out">● '+(isDalali?'Haipatikani':'Out of Stock')+'</span>';
+
+    // Action button — Wasiliana for Dalali, Add to Cart for everything else
+    var actionBtn = isDalali
+      ? '<button class="wasiliana-btn" onclick="event.stopPropagation();dalaliContact(\''+p.id+'\')">💬 Wasiliana</button>'
+      : '<button class="add-cart-btn"'+(p.stock==='out'?' disabled':'')+' onclick="event.stopPropagation();addToCart(\''+p.id+'\')">'+
+          (p.stock==='out'?'Sold Out':'+ Cart')+'</button>';
+
+    // Price display — Dalali shows "Sh" prefix for property/vehicle listings
+    var priceDisplay = isDalali
+      ? '<div class="prod-price">'+fmtPrice(p.price)+'</div>'
+      : '<div class="prod-price">'+fmtPrice(p.price)+'</div>';
+
+    return '<div class="prod-card'+(isDalali?' dalali-card':'')+'" data-product-id="'+p.id+'"'
+         + ' style="animation-delay:'+i*0.04+'s" onclick="openProduct(\''+p.id+'\')">'
+         + '<div class="prod-img-wrap" data-slider-id="'+p.id+'">'
+           + imgHtml
+           + badgeHtml
+           + catBadgeHtml
+           + '<div class="quick-view-overlay"><button class="quick-view-btn" onclick="event.stopPropagation();openProduct(\''+p.id+'\')">'+
+               (isDalali?'Maelezo Zaidi':'Quick View')+'</button></div>'
+         + '</div>'
+         + '<div class="prod-info">'
+           + '<div class="prod-category">'+(isDalali?'🏠 Dalali Mtandaoni':esc(p.category||'other'))+'</div>'
+           + '<div class="prod-name">'+esc(p.name||'')+'</div>'
+           + '<div class="prod-price-row">'
+             + priceDisplay
+             + (p.priceOld ? '<div class="prod-price-old">'+fmtPrice(p.priceOld)+'</div>' : '')
+             + (discount > 0 ? '<div class="prod-discount">-'+discount+'%</div>' : '')
+           + '</div>'
+           + '<div class="prod-footer">'+stockHtml+actionBtn+'</div>'
+         + '</div>'
+         + '</div>';
   }).join('');
+
+  // Start carousel for all cards that have multiple images
+  startAllSliders();
 }
 
 function filterCategory(cat, navEl, sbEl) {
@@ -1101,7 +1209,7 @@ function filterCategory(cat, navEl, sbEl) {
   // Update sidebar
   document.querySelectorAll('.sb-filter-item[data-cat]').forEach(function(b){ b.classList.toggle('active', b.dataset.cat === cat); });
   // Update section title
-  var titles = {all:'All Products',electronics:'Electronics',construction:'Construction Tools',office:'Office Supplies',home:'Home & Living',fashion:'Fashion',food:'Food & Groceries',other:'Other'};
+  var titles = {all:'All Products',electronics:'Electronics',construction:'Construction Tools',office:'Office Supplies',home:'Home & Living',fashion:'Fashion',food:'Food & Groceries',other:'Other',dalali:'Dalali Mtandaoni 🏠'};
   var stEl = document.getElementById('section-title');
   if (stEl) stEl.textContent = titles[cat] || 'Products';
   applyFiltersAndRender();
@@ -1114,12 +1222,18 @@ function filterStock(val, el) {
   applyFiltersAndRender();
 }
 
+var _searchTimer = null;
+function handleSearch(val) {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(function() {
+    applyFiltersAndRender();
+  }, 500); // 500ms debounce — no Firestore re-fetch, local filter only
+}
 function applyPriceFilter() { applyFiltersAndRender(); }
 function applySort() { applyFiltersAndRender(); }
-function handleSearch(val) { applyFiltersAndRender(); }
 
 function updateCounts() {
-  var cats = ['all','electronics','construction','office','home','fashion','food','other'];
+  var cats = ['all','electronics','construction','office','home','fashion','food','other','dalali'];
   cats.forEach(function(cat) {
     var el = document.getElementById('count-' + cat);
     if (el) el.textContent = cat === 'all' ? ALL_PRODUCTS.length : ALL_PRODUCTS.filter(function(p){ return p.category===cat; }).length;
@@ -1155,7 +1269,6 @@ function openProduct(productId) {
   var imgs = p.images || (p.image ? [p.image] : []);
   var mainImg = imgs[0] || 'https://via.placeholder.com/500x500/242529/f0a500?text=Product';
 
-  document.getElementById('modal-cat').textContent  = (p.category||'').toUpperCase();
   document.getElementById('modal-name').textContent = p.name || '';
   document.getElementById('modal-price').textContent = fmtPrice(p.price);
   document.getElementById('modal-desc').textContent = p.description || '';
@@ -1186,10 +1299,27 @@ function openProduct(productId) {
       '<img src="'+url+'" loading="lazy"/></div>';
   }).join('');
 
-  // Cart button state
+  // Adapt modal for Dalali vs regular product
+  var isDalali = p.category === 'dalali';
+  var qtyRow  = document.getElementById('modal-qty-row')  || document.querySelector('.modal-qty-row');
   var cartBtn = document.getElementById('modal-cart-btn');
-  if (p.stock === 'out') { cartBtn.disabled = true; cartBtn.textContent = 'Out of Stock'; }
-  else { cartBtn.disabled = false; cartBtn.textContent = '🛒 Add to Cart'; }
+  var waBtn   = document.getElementById('modal-wa-btn');
+
+  if (isDalali) {
+    if (qtyRow)  qtyRow.style.display  = 'none';
+    if (cartBtn) { cartBtn.style.display = 'none'; }
+    if (waBtn)   { waBtn.textContent = '💬 Wasiliana na Dalali'; waBtn.style.background = 'linear-gradient(135deg,#0ea5e9,#0284c7)'; waBtn.style.boxShadow = '0 2px 12px rgba(14,165,233,.3)'; }
+    document.getElementById('modal-cat').textContent = '🏠 DALALI MTANDAONI';
+  } else {
+    if (qtyRow)  qtyRow.style.display  = 'flex';
+    if (cartBtn) {
+      cartBtn.style.display = 'flex';
+      if (p.stock === 'out') { cartBtn.disabled = true; cartBtn.textContent = 'Out of Stock'; }
+      else { cartBtn.disabled = false; cartBtn.textContent = '🛒 Add to Cart'; }
+    }
+    if (waBtn) { waBtn.textContent = '💬 Order via WhatsApp'; waBtn.style.background = 'linear-gradient(135deg,#25D366,#128C7E)'; waBtn.style.boxShadow = '0 2px 12px rgba(37,211,102,.3)'; }
+    document.getElementById('modal-cat').textContent = (p.category||'').toUpperCase();
+  }
 
   document.getElementById('product-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -1213,7 +1343,11 @@ function changeModalQty(delta) {
 
 function addToCartFromModal() {
   if (!CURRENT_PRODUCT) return;
-  for (var i = 0; i < MODAL_QTY; i++) addToCart(CURRENT_PRODUCT.id);
+  if (CURRENT_PRODUCT.category === 'dalali') {
+    orderViaWhatsApp(); // Redirect to WhatsApp contact for Dalali
+    return;
+  }
+  for (var i = 0; i < MODAL_QTY; i++) _originalAddToCart(CURRENT_PRODUCT.id);
   closeProductModal();
   openCart();
 }
@@ -1221,12 +1355,30 @@ function addToCartFromModal() {
 function orderViaWhatsApp() {
   if (!CURRENT_PRODUCT) return;
   var p = CURRENT_PRODUCT;
-  var msg = '🛒 *Order from Arnorex e-Market*\n\n'
-          + '📦 *Product:* ' + p.name + '\n'
-          + '💰 *Price:* ' + fmtPrice(p.price) + '\n'
-          + '🔢 *Quantity:* ' + MODAL_QTY + '\n'
-          + '💵 *Total:* ' + fmtPrice(p.price * MODAL_QTY) + '\n\n'
-          + 'Please confirm availability and delivery details. Thank you!';
+  var msg;
+  if (p.category === 'dalali') {
+    // Swahili message for Dalali Mtandaoni listings
+    msg = 'Habari Arnold, nahitaji maelezo zaidi kuhusu *' + p.name + '* niliyoiona kwenye Dalali Mtandaoni.\n\n'
+        + '💰 Bei iliyoonyeshwa: ' + fmtPrice(p.price) + '\n\n'
+        + 'Tafadhali nipe mawasiliano zaidi. Asante!';
+  } else {
+    msg = '🛒 *Order from Arnorex e-Market*\n\n'
+        + '📦 *Product:* ' + p.name + '\n'
+        + '💰 *Price:* ' + fmtPrice(p.price) + '\n'
+        + '🔢 *Quantity:* ' + MODAL_QTY + '\n'
+        + '💵 *Total:* ' + fmtPrice(p.price * MODAL_QTY) + '\n\n'
+        + 'Please confirm availability and delivery details. Thank you!';
+  }
+  window.open('https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// ── DALALI CONTACT — called from card button (not modal) ──
+function dalaliContact(productId) {
+  var p = ALL_PRODUCTS.find(function(x){ return x.id === productId; });
+  if (!p) return;
+  var msg = 'Habari Arnold, nahitaji maelezo zaidi kuhusu *' + p.name + '* niliyoiona kwenye Dalali Mtandaoni.\n\n'
+          + '💰 Bei iliyoonyeshwa: ' + fmtPrice(p.price) + '\n\n'
+          + 'Tafadhali nipe mawasiliano zaidi. Asante!';
   window.open('https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
@@ -1453,9 +1605,15 @@ async function saveProduct() {
   var stock     = document.getElementById('ap-stock').value;
   var badge     = document.getElementById('ap-badge').value || null;
   var desc      = document.getElementById('ap-desc').value.trim();
-  var imageURL  = document.getElementById('productImageUrl').value.trim();
+  var imageRaw  = document.getElementById('productImageUrl').value.trim();
 
   if (!name || !category || !price || !desc) { toast('Please fill in all required fields', true); return; }
+
+  // Split comma-separated URLs into clean array
+  var imageURLs = imageRaw
+    ? imageRaw.split(',').map(function(u){ return u.trim(); }).filter(function(u){ return u.length > 0; })
+    : [];
+  var imageURL = imageURLs[0] || '';
 
   var saveBtn = document.querySelector('#admin-add .btn-gold');
   if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
@@ -1464,8 +1622,8 @@ async function saveProduct() {
     var productData = {
       name, category, price, priceOld, stock, badge,
       description: desc,
-      image: imageURL,         // single URL string saved directly
-      images: imageURL ? [imageURL] : [],  // array for display compatibility
+      image: imageURL,        // first URL for backwards compatibility
+      images: imageURLs,      // full array — supports multi-image carousel
       createdAt: window._fb ? window._fb.serverTimestamp() : Date.now()
     };
 
@@ -1585,9 +1743,9 @@ function editProduct(productId) {
   document.getElementById('ap-stock').value     = p.stock||'in';
   document.getElementById('ap-badge').value     = p.badge||'';
   document.getElementById('ap-desc').value      = p.description||'';
-  var existingURL = (p.images && p.images[0]) || p.image || '';
-  document.getElementById('productImageUrl').value = existingURL;
-  previewAdminImage(existingURL);
+  var existingURLs = p.images && p.images.length ? p.images : (p.image ? [p.image] : []);
+  document.getElementById('productImageUrl').value = existingURLs.join(', ');
+  previewAdminImage(existingURLs[0] || '');
   switchAdminTab('add', document.querySelector('.admin-tab'));
   toast('Editing: ' + p.name);
 }
@@ -1632,6 +1790,67 @@ function toast(msg, isErr) {
   clearTimeout(t._timer);
   t._timer = setTimeout(function(){ t.className=''; }, 3500);
 }
+
+// ══════════════════════════════════════════════════════
+//  AUTO-SLIDER / CROSSFADE ENGINE
+//  Cycles through multiple images on each card every 4s
+// ══════════════════════════════════════════════════════
+
+var SLIDER_TIMERS = {}; // {productId: intervalId}
+
+function startAllSliders() {
+  SHOWN_PRODUCTS.forEach(function(p) {
+    var imgs = p.images || (p.image ? [p.image] : []);
+    if (imgs.length < 2) return; // Only start slider if multiple images exist
+    startSlider(p.id);
+  });
+}
+
+function startSlider(productId) {
+  // Clear any existing timer for this product
+  if (SLIDER_TIMERS[productId]) {
+    clearInterval(SLIDER_TIMERS[productId]);
+    delete SLIDER_TIMERS[productId];
+  }
+  var wrap = document.querySelector('.prod-img-wrap[data-slider-id="' + productId + '"]');
+  if (!wrap) return;
+  var slides = wrap.querySelectorAll('img');
+  if (slides.length < 2) return;
+  var current = 0;
+  SLIDER_TIMERS[productId] = setInterval(function() {
+    // Check if wrap still exists in DOM
+    if (!wrap.isConnected) {
+      clearInterval(SLIDER_TIMERS[productId]);
+      delete SLIDER_TIMERS[productId];
+      return;
+    }
+    // Fade out current
+    slides[current].className = 'slider-hidden';
+    // Advance to next
+    current = (current + 1) % slides.length;
+    // Fade in next
+    slides[current].className = 'slider-active';
+  }, 4000); // 4 second interval
+}
+
+function stopAllSliders() {
+  Object.keys(SLIDER_TIMERS).forEach(function(id) {
+    clearInterval(SLIDER_TIMERS[id]);
+  });
+  SLIDER_TIMERS = {};
+}
+
+// ── Guard addToCart against Dalali products ──
+// Overwrite to block cart for dalali category
+var _originalAddToCart = addToCart;
+addToCart = function(productId) {
+  var p = ALL_PRODUCTS.find(function(x){ return x.id === productId; });
+  if (p && p.category === 'dalali') {
+    dalaliContact(productId);
+    return;
+  }
+  _originalAddToCart(productId);
+};
 
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
