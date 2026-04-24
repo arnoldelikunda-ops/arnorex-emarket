@@ -155,8 +155,8 @@
   --transition: .18s cubic-bezier(.4,0,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
-body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+html{scroll-behavior:smooth;max-width:100vw;overflow-x:hidden;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:100vw;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
 a{text-decoration:none;color:inherit;}
 button{font-family:'Outfit',sans-serif;cursor:pointer;}
 img{display:block;max-width:100%;}
@@ -175,10 +175,11 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
 
 /* ─── HEADER ─── */
 #header{
-  position:sticky;top:0;left:0;right:0;height:var(--header-h);
-  background:rgba(17,18,20,0.96);backdrop-filter:blur(20px);
+  position:sticky;top:0;left:0;right:0;width:100%;height:var(--header-h);
+  background:rgba(17,18,20,0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-bottom:1px solid var(--border);z-index:300;
   display:flex;align-items:center;padding:0 20px;gap:16px;
+  box-sizing:border-box;
 }
 .header-logo{display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .logo-icon{
@@ -250,6 +251,7 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
 /* ─── CATEGORY NAV — sticky below header, glassmorphism ─── */
 #cat-nav{
   position:sticky;top:var(--header-h);z-index:200;
+  width:100%;box-sizing:border-box;
   background:rgba(24,25,29,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-bottom:1px solid var(--border);
   padding:0 20px;overflow-x:auto;white-space:nowrap;
@@ -269,7 +271,7 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
 .cat-btn .cat-icon{font-size:15px;}
 
 /* ─── LAYOUT ─── */
-#main-layout{display:flex;min-height:calc(100vh - var(--header-h) - 44px);}
+#main-layout{display:flex;width:100%;max-width:100vw;min-height:calc(100vh - var(--header-h) - 44px);overflow-x:hidden;}
 
 /* ─── SIDEBAR — sticky below header + cat nav ─── */
 #sidebar{
@@ -293,10 +295,11 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
 .sb-divider{height:1px;background:var(--border);margin:10px 20px;}
 
 /* ─── MAIN CONTENT ─── */
-#content{flex:1;padding:24px;min-width:0;}
+#content{flex:1;padding:24px;min-width:0;width:100%;max-width:100%;box-sizing:border-box;overflow-x:hidden;}
 
 /* ─── HERO BANNER ─── */
 #hero{
+  width:100%;box-sizing:border-box;
   background:linear-gradient(135deg,#1a1b1f 0%,#242529 40%,#1a1b1f 100%);
   border:1px solid var(--border);border-radius:var(--radius-lg);
   padding:40px 44px;margin-bottom:28px;position:relative;overflow:hidden;
@@ -336,6 +339,7 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
   gap:14px;
+  width:100%;box-sizing:border-box;
 }
 
 /* ─── PRODUCT CARD ─── */
@@ -343,6 +347,7 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
   background:var(--surface);border:1px solid var(--border);
   border-radius:var(--radius);overflow:hidden;
   transition:var(--transition);cursor:pointer;position:relative;
+  width:100%;box-sizing:border-box;min-width:0;
 }
 .prod-card:hover{
   border-color:rgba(240,165,0,.35);
@@ -597,26 +602,72 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
 }
 @media(max-width:768px){
   :root{--header-h:56px;}
-  #header{padding:0 14px;gap:10px;}
+
+  /* ── Viewport lockdown on mobile ── */
+  html,body{max-width:100vw;overflow-x:hidden;}
+  #header,#cat-nav,#main-layout,#content,#hero,#product-grid,#footer,.footer-bottom{
+    width:100%;max-width:100vw;box-sizing:border-box;
+  }
+
+  /* ── Header ── */
+  #header{padding:0 12px;gap:8px;}
   .header-search{display:none;}
-  .logo-text{font-size:16px;}
-  #cat-nav{padding:0 14px;top:var(--header-h);}  /* stays sticky on mobile too */
-  #content{padding:14px;}
-  #hero{padding:24px 20px;}
-  .hero-title{font-size:24px;}
+  .logo-text{font-size:15px;}
+
+  /* ── Category nav ── */
+  #cat-nav{padding:0 12px;top:var(--header-h);}
+
+  /* ── Main layout: sidebar hidden, content full-width ── */
+  #main-layout{flex-direction:column;}
+  #content{padding:12px;width:100%;max-width:100vw;}
+
+  /* ── Hero: no border-radius on mobile edges ── */
+  #hero{
+    padding:20px 14px;margin-bottom:16px;
+    border-radius:var(--radius);
+  }
+  .hero-title{font-size:22px;}
   .hero-visual{display:none;}
-  .hero-stats{gap:16px;}
-  #product-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
+  .hero-stats{gap:14px;}
+  .hero-sub{font-size:13px;}
+  .hero-cta-row{gap:8px;}
+  .hero-cta-row .btn-lg{padding:10px 16px;font-size:13px;}
+
+  /* ── Product grid: strict 2-column on all phones ── */
+  #product-grid{
+    grid-template-columns:1fr 1fr !important;
+    gap:10px;
+  }
+
+  /* ── Product cards: prevent overflow ── */
+  .prod-card{min-width:0;width:100%;}
+  .prod-info{padding:8px 10px;}
+  .prod-name{font-size:12.5px;}
+  .prod-price{font-size:14px;}
+  .add-cart-btn,.wasiliana-btn{font-size:11px;padding:5px 8px;}
+
+  /* ── Modal: single column ── */
   .modal-content{grid-template-columns:1fr;}
   .modal-gallery{border-right:none;border-bottom:1px solid var(--border);}
-  #cart-drawer{width:100%;max-width:360px;}
-  #footer{grid-template-columns:1fr;}
-  .footer-brand{display:block;}
+  .modal-box{max-height:95vh;border-radius:var(--radius);}
+  .modal-name{font-size:18px;}
+  .modal-price{font-size:22px;}
+
+  /* ── Cart drawer ── */
+  #cart-drawer{width:100%;max-width:100vw;}
+
+  /* ── Footer ── */
+  #footer{grid-template-columns:1fr;padding:20px 14px;}
+  .footer-bottom{padding:12px 14px;}
 }
 @media(max-width:480px){
-  #product-grid{grid-template-columns:repeat(2,1fr);}
-  .admin-box{padding:16px;}
+  #product-grid{grid-template-columns:1fr 1fr !important;gap:8px;}
+  #content{padding:10px;}
+  #hero{padding:16px 12px;}
+  .hero-title{font-size:20px;}
+  .admin-box{padding:14px;}
   .form-grid-2{grid-template-columns:1fr;}
+  .prod-img-wrap{height:160px!important;}
 }
 @media(prefers-reduced-motion:reduce){
   *{transition:none!important;animation:none!important;}
@@ -674,25 +725,33 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
 .cat-badge.cat-dalali{color:#38bdf8;border-color:rgba(56,189,248,.3);}
 .cat-badge.cat-other{color:var(--text2);}
 
-/* ─── LIKE & SHARE BUTTONS (product card overlay) ─── */
+/* ─── LIKE & SHARE BUTTONS — always visible on card ─── */
 .card-social{
   position:absolute;top:8px;right:8px;z-index:5;
   display:flex;flex-direction:column;gap:5px;
-  opacity:0;transform:translateX(8px);
-  transition:opacity .2s, transform .2s;
+  /* Always visible — no opacity:0 hide */
 }
-.prod-card:hover .card-social{opacity:1;transform:translateX(0);}
 .social-btn{
-  width:30px;height:30px;border-radius:50%;
-  background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
-  border:1px solid rgba(255,255,255,.15);
-  color:#fff;font-size:13px;cursor:pointer;
+  width:32px;height:32px;min-width:32px;min-height:32px; /* thumb-friendly */
+  border-radius:50%;
+  background:rgba(0,0,0,.52);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.18);
+  color:#fff;font-size:14px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   transition:var(--transition);
+  -webkit-tap-highlight-color:transparent;
 }
-.social-btn:hover{background:rgba(0,0,0,.8);transform:scale(1.15);}
-.social-btn.liked{background:rgba(239,68,68,.7);border-color:rgba(239,68,68,.5);}
-.social-btn.liked:hover{background:rgba(239,68,68,.9);}
+.social-btn:hover,.social-btn:active{background:rgba(0,0,0,.75);transform:scale(1.12);}
+/* Liked = orange accent, not red */
+.social-btn.liked{
+  background:rgba(255,153,0,.75);
+  border-color:rgba(255,153,0,.6);
+  color:#000;
+}
+.social-btn.liked:hover{background:rgba(255,153,0,.9);}
+/* Share button teal tint */
+.social-btn.share-btn{border-color:rgba(56,189,248,.3);}
+.social-btn.share-btn:hover{background:rgba(56,189,248,.3);}
 
 /* ─── FLOATING WHATSAPP FAB ─── */
 #wa-fab{
@@ -970,6 +1029,15 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
           </div>
         </div>
         <div class="modal-actions">
+          <!-- Like & Share row — always visible in product panel -->
+          <div id="modal-social-row" style="display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:4px;">
+            <button id="modal-like-btn" onclick="toggleLikeFromModal()" style="display:flex;align-items:center;gap:7px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 16px;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition);flex:1;justify-content:center;font-family:'Outfit',sans-serif;min-height:40px;">
+              <span id="modal-like-icon" style="font-size:16px">♥</span>&nbsp;<span id="modal-like-label">Like</span>
+            </button>
+            <button id="modal-share-btn" onclick="if(CURRENT_PRODUCT)shareProduct(CURRENT_PRODUCT.id)" style="display:flex;align-items:center;gap:7px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 16px;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition);flex:1;justify-content:center;font-family:'Outfit',sans-serif;min-height:40px;">
+              ↗&nbsp;Share
+            </button>
+          </div>
           <button class="btn btn-gold btn-lg" onclick="addToCartFromModal()" id="modal-cart-btn">🛒 Add to Cart</button>
           <button class="btn btn-lg whatsapp-btn" onclick="orderViaWhatsApp()" id="modal-wa-btn">💬 Order via WhatsApp</button>
           <button class="btn btn-lg email-btn" onclick="orderViaEmail()" id="modal-email-btn">✉ Order via Email</button>
@@ -1298,7 +1366,7 @@ function renderProducts() {
     var likedClass = LIKED_PRODUCTS[p.id] ? ' liked' : '';
     var socialHtml = '<div class="card-social">'
       + '<button class="social-btn' + likedClass + '" title="Like" onclick="event.stopPropagation();toggleLike(\'' + p.id + '\',this)">♥</button>'
-      + '<button class="social-btn" title="Share" onclick="event.stopPropagation();shareProduct(\'' + p.id + '\')">↗</button>'
+      + '<button class="social-btn share-btn" title="Share" onclick="event.stopPropagation();shareProduct(\'' + p.id + '\')">↗</button>'
       + '</div>';
 
     return '<div class="prod-card'+(isDalali?' dalali-card':'')+'" data-product-id="'+p.id+'"'
@@ -1457,6 +1525,8 @@ function openProduct(productId) {
 
   document.getElementById('product-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
+  // Sync like button state in modal
+  syncModalLikeUI(productId);
 }
 
 function closeProductModal() {
@@ -1934,17 +2004,42 @@ function toast(msg, isErr) {
 
 function toggleLike(productId, btn) {
   LIKED_PRODUCTS[productId] = !LIKED_PRODUCTS[productId];
-  // Persist to localStorage
   try { localStorage.setItem('arnorex_likes', JSON.stringify(LIKED_PRODUCTS)); } catch(e){}
   if (LIKED_PRODUCTS[productId]) {
     btn.classList.add('liked');
-    btn.textContent = '♥';
-    toast('❤ Added to favourites!');
+    toast('♥ Added to favourites!');
   } else {
     btn.classList.remove('liked');
-    btn.textContent = '♥';
     toast('Removed from favourites');
   }
+  // Also sync modal if open on same product
+  if (CURRENT_PRODUCT && CURRENT_PRODUCT.id === productId) syncModalLikeUI(productId);
+}
+
+// Called from modal Like button
+function toggleLikeFromModal() {
+  if (!CURRENT_PRODUCT) return;
+  var pid = CURRENT_PRODUCT.id;
+  LIKED_PRODUCTS[pid] = !LIKED_PRODUCTS[pid];
+  try { localStorage.setItem('arnorex_likes', JSON.stringify(LIKED_PRODUCTS)); } catch(e){}
+  syncModalLikeUI(pid);
+  // Also update card button if visible in background
+  var cardBtn = document.querySelector('.prod-card[data-product-id="'+pid+'"] .social-btn:first-child');
+  if (cardBtn) cardBtn.classList.toggle('liked', !!LIKED_PRODUCTS[pid]);
+  toast(LIKED_PRODUCTS[pid] ? '♥ Added to favourites!' : 'Removed from favourites');
+}
+
+function syncModalLikeUI(productId) {
+  var btn   = document.getElementById('modal-like-btn');
+  var icon  = document.getElementById('modal-like-icon');
+  var label = document.getElementById('modal-like-label');
+  if (!btn) return;
+  var isLiked = !!LIKED_PRODUCTS[productId];
+  btn.style.background    = isLiked ? 'rgba(255,153,0,.15)' : '';
+  btn.style.borderColor   = isLiked ? 'rgba(255,153,0,.5)'  : '';
+  btn.style.color         = isLiked ? 'var(--gold)'         : '';
+  if (icon)  icon.textContent  = '♥';
+  if (label) label.textContent = isLiked ? 'Liked ♥' : 'Like';
 }
 
 // ══════════════════════════════════════════════════════
@@ -2057,4 +2152,4 @@ document.addEventListener('keydown', function(e) {
 // Prevent modal scroll propagation
 document.getElementById('product-modal').addEventListener('wheel', function(e){ e.stopPropagation(); });
 </script>
-                                    </html>
+    </html>
