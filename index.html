@@ -3,7 +3,54 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Arnorex e-Market</title>
+
+<!-- ═══ SEO & METADATA ═══ -->
+<title>Arnorex e-Market | Tanzania's Premium Online Store — Electronics, Plots & Vehicles</title>
+<meta name="description" content="Shop Tanzania's best online marketplace. Buy electronics, smartphones, construction tools, office supplies, fashion, food, and find verified land plots, houses, and vehicles through Dalali Mtandaoni. Fast WhatsApp ordering — serving Arusha, Dar es Salaam, Moshi, Dodoma and all of East Africa."/>
+<meta name="keywords" content="online shopping Tanzania, electronics Arusha, vitu bei nafuu Tanzania, dalali mtandaoni, nyumba za kupanga Dar es Salaam, plot kuuza Tanzania, gari la kuuza Tanzania, arnorex emarket, buy phone Tanzania, construction tools Arusha, East Africa marketplace, Swahili shop online"/>
+<meta name="author" content="Arnold Elikunda — Arnorex e-Market"/>
+<meta name="robots" content="index, follow"/>
+<meta name="theme-color" content="#f0a500"/>
+<link rel="canonical" href="https://arnorex-emarket.netlify.app/"/>
+
+<!-- Open Graph — controls preview on WhatsApp, Facebook, LinkedIn -->
+<meta property="og:type"        content="website"/>
+<meta property="og:site_name"   content="Arnorex e-Market"/>
+<meta property="og:title"       content="Arnorex e-Market | Tanzania's Premium Online Store"/>
+<meta property="og:description" content="Electronics, plots, vehicles, construction tools & more. Order via WhatsApp. Serving Arusha, Dar es Salaam & all of East Africa."/>
+<meta property="og:url"         content="https://arnorex-emarket.netlify.app/"/>
+<meta property="og:image"       content="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&h=630&fit=crop&q=80"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:locale"      content="sw_TZ"/>
+
+<!-- Twitter Card -->
+<meta name="twitter:card"        content="summary_large_image"/>
+<meta name="twitter:title"       content="Arnorex e-Market | Tanzania's Premium Online Store"/>
+<meta name="twitter:description" content="Electronics, plots, vehicles & more. Order via WhatsApp. Serving East Africa."/>
+<meta name="twitter:image"       content="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&h=630&fit=crop&q=80"/>
+
+<!-- Structured Data (Google Rich Results) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Store",
+  "name": "Arnorex e-Market",
+  "description": "Tanzania's premium online marketplace for electronics, tools, dalali listings and more.",
+  "url": "https://arnorex-emarket.netlify.app/",
+  "telephone": "+255773223565",
+  "email": "arnoldelikunda@gmail.com",
+  "address": {"@type":"PostalAddress","addressLocality":"Arusha","addressCountry":"TZ"},
+  "priceRange": "TZS",
+  "currenciesAccepted": "TZS",
+  "openingHours": "Mo-Su 08:00-22:00",
+  "sameAs": [
+    "https://wa.me/255773223565",
+    "https://linkedin.com/in/arnoldelikunda"
+  ]
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
 
@@ -87,10 +134,10 @@
   --surface2:  #2c2d33;
   --border:    rgba(255,255,255,0.07);
   --border2:   rgba(255,255,255,0.12);
-  --gold:      #f0a500;
-  --gold2:     #ffc535;
-  --gold-dim:  rgba(240,165,0,0.12);
-  --gold-glow: rgba(240,165,0,0.25);
+  --gold:      #ff9900;
+  --gold2:     #ffb733;
+  --gold-dim:  rgba(255,153,0,0.12);
+  --gold-glow: rgba(255,153,0,0.28);
   --orange:    #e8620a;
   --text:      #f0f0f2;
   --text2:     #a8aab8;
@@ -200,11 +247,14 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
 #admin-link{display:none;background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.25);color:var(--gold);font-size:12px;font-weight:700;border-radius:var(--radius-sm);padding:6px 12px;gap:5px;cursor:pointer;transition:var(--transition);}
 #admin-link:hover{background:rgba(240,165,0,.2);}
 
-/* ─── CATEGORY NAV ─── */
+/* ─── CATEGORY NAV — sticky below header, glassmorphism ─── */
 #cat-nav{
-  background:var(--bg2);border-bottom:1px solid var(--border);
+  position:sticky;top:var(--header-h);z-index:200;
+  background:rgba(24,25,29,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
   padding:0 20px;overflow-x:auto;white-space:nowrap;
   scrollbar-width:none;display:flex;align-items:center;gap:4px;
+  height:44px;
 }
 #cat-nav::-webkit-scrollbar{display:none;}
 .cat-btn{
@@ -214,14 +264,14 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
   cursor:pointer;border-bottom:2px solid transparent;
   transition:var(--transition);flex-shrink:0;
 }
-.cat-btn:hover{color:var(--text);border-bottom-color:rgba(240,165,0,.4);}
+.cat-btn:hover{color:var(--text);border-bottom-color:rgba(255,153,0,.4);}
 .cat-btn.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:700;}
 .cat-btn .cat-icon{font-size:15px;}
 
 /* ─── LAYOUT ─── */
 #main-layout{display:flex;min-height:calc(100vh - var(--header-h) - 44px);}
 
-/* ─── SIDEBAR ─── */
+/* ─── SIDEBAR — sticky below header + cat nav ─── */
 #sidebar{
   width:var(--sidebar-w);flex-shrink:0;
   background:var(--bg2);border-right:1px solid var(--border);
@@ -550,7 +600,7 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
   #header{padding:0 14px;gap:10px;}
   .header-search{display:none;}
   .logo-text{font-size:16px;}
-  #cat-nav{padding:0 14px;}
+  #cat-nav{padding:0 14px;top:var(--header-h);}  /* stays sticky on mobile too */
   #content{padding:14px;}
   #hero{padding:24px 20px;}
   .hero-title{font-size:24px;}
@@ -623,6 +673,65 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
 .cat-badge.cat-food{color:#fbbf24;border-color:rgba(251,191,36,.3);}
 .cat-badge.cat-dalali{color:#38bdf8;border-color:rgba(56,189,248,.3);}
 .cat-badge.cat-other{color:var(--text2);}
+
+/* ─── LIKE & SHARE BUTTONS (product card overlay) ─── */
+.card-social{
+  position:absolute;top:8px;right:8px;z-index:5;
+  display:flex;flex-direction:column;gap:5px;
+  opacity:0;transform:translateX(8px);
+  transition:opacity .2s, transform .2s;
+}
+.prod-card:hover .card-social{opacity:1;transform:translateX(0);}
+.social-btn{
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.15);
+  color:#fff;font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:var(--transition);
+}
+.social-btn:hover{background:rgba(0,0,0,.8);transform:scale(1.15);}
+.social-btn.liked{background:rgba(239,68,68,.7);border-color:rgba(239,68,68,.5);}
+.social-btn.liked:hover{background:rgba(239,68,68,.9);}
+
+/* ─── FLOATING WHATSAPP FAB ─── */
+#wa-fab{
+  position:fixed;bottom:28px;right:24px;z-index:450;
+  width:56px;height:56px;border-radius:50%;
+  background:linear-gradient(135deg,#25D366,#128C7E);
+  box-shadow:0 4px 20px rgba(37,211,102,.45);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;cursor:pointer;
+  border:none;transition:var(--transition);
+  animation:wafab-pulse 3s ease-in-out infinite;
+}
+#wa-fab:hover{transform:scale(1.12);box-shadow:0 6px 28px rgba(37,211,102,.6);}
+@keyframes wafab-pulse{
+  0%,100%{box-shadow:0 4px 20px rgba(37,211,102,.45);}
+  50%{box-shadow:0 4px 32px rgba(37,211,102,.75),0 0 0 8px rgba(37,211,102,.1);}
+}
+#wa-fab .wa-tooltip{
+  position:absolute;right:64px;top:50%;transform:translateY(-50%);
+  background:rgba(0,0,0,.8);backdrop-filter:blur(8px);
+  color:#fff;font-size:12px;font-weight:600;font-family:'Outfit',sans-serif;
+  padding:6px 12px;border-radius:6px;white-space:nowrap;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+  border:1px solid rgba(255,255,255,.1);
+}
+#wa-fab:hover .wa-tooltip{opacity:1;}
+
+/* ─── Mobile: shift FAB above bottom when cart might overlap ─── */
+@media(max-width:768px){
+  #wa-fab{bottom:20px;right:16px;width:50px;height:50px;font-size:22px;}
+  #wa-fab .wa-tooltip{display:none;}
+}
+
+/* ─── Sidebar active item — update for #ff9900 ─── */
+.sb-filter-item.active{background:rgba(255,153,0,.08);border-left-color:var(--gold);color:var(--gold);}
+.sb-filter-item.active label{color:var(--gold);}
+
+/* ─── Toast position — push up above FAB ─── */
+#toast{bottom:96px;}
 </style>
 </head>
 <body>
@@ -981,6 +1090,12 @@ input,select,textarea{font-family:'Outfit',sans-serif;}
   </div>
 </div>
 
+<!-- ═══ FLOATING WHATSAPP BUTTON ═══ -->
+<button id="wa-fab" onclick="window.open('https://wa.me/255773223565?text=Habari%20Arnold%2C%20nataka%20msaada%20wa%20bidhaa%20kutoka%20Arnorex%20e-Market.','_blank')" title="Chat on WhatsApp">
+  💬
+  <span class="wa-tooltip">Chat on WhatsApp</span>
+</button>
+
 <!-- ═══ TOAST ═══ -->
 <div id="toast"><span id="toast-icon">✓</span><span id="toast-msg">Done</span></div>
 
@@ -998,16 +1113,17 @@ var WHATSAPP_NUMBER = '255773223565'; // Arnold's WhatsApp
 var OWNER_EMAIL     = 'arnoldelikunda@gmail.com';
 var STORE_NAME      = 'Arnorex e-Market';
 
-// ── STATE ──
-var ALL_PRODUCTS  = [];   // Master list from Firestore
-var SHOWN_PRODUCTS = [];  // Currently visible (filtered)
-var CART          = [];   // [{id, name, price, image, qty}]
-var CURRENT_PRODUCT = null; // Product currently shown in modal
+// ── APP STATE ──
+var ALL_PRODUCTS  = [];
+var SHOWN_PRODUCTS = [];
+var CART          = [];
+var CURRENT_PRODUCT = null;
 var MODAL_QTY     = 1;
 var ACTIVE_CAT    = 'all';
 var ACTIVE_STOCK  = 'all';
 var ALL_ADMIN_PRODUCTS = [];
 var EDIT_PRODUCT_ID = null;
+var LIKED_PRODUCTS = {}; // {productId: true/false} — persisted in localStorage
 
 // ── DEMO PRODUCTS (shown while Firestore loads / fallback) ──
 var DEMO_PRODUCTS = [
@@ -1030,6 +1146,8 @@ var DEMO_PRODUCTS = [
 
 // ── INIT ──
 window.addEventListener('DOMContentLoaded', function() {
+  // Load persisted likes
+  try { LIKED_PRODUCTS = JSON.parse(localStorage.getItem('arnorex_likes') || '{}'); } catch(e){ LIKED_PRODUCTS = {}; }
   loadProducts();
   renderCart();
   checkMobile();
@@ -1176,12 +1294,20 @@ function renderProducts() {
       ? '<div class="prod-price">'+fmtPrice(p.price)+'</div>'
       : '<div class="prod-price">'+fmtPrice(p.price)+'</div>';
 
+    // Social buttons (like + share) — shown on card hover
+    var likedClass = LIKED_PRODUCTS[p.id] ? ' liked' : '';
+    var socialHtml = '<div class="card-social">'
+      + '<button class="social-btn' + likedClass + '" title="Like" onclick="event.stopPropagation();toggleLike(\'' + p.id + '\',this)">♥</button>'
+      + '<button class="social-btn" title="Share" onclick="event.stopPropagation();shareProduct(\'' + p.id + '\')">↗</button>'
+      + '</div>';
+
     return '<div class="prod-card'+(isDalali?' dalali-card':'')+'" data-product-id="'+p.id+'"'
          + ' style="animation-delay:'+i*0.04+'s" onclick="openProduct(\''+p.id+'\')">'
          + '<div class="prod-img-wrap" data-slider-id="'+p.id+'">'
            + imgHtml
            + badgeHtml
            + catBadgeHtml
+           + socialHtml
            + '<div class="quick-view-overlay"><button class="quick-view-btn" onclick="event.stopPropagation();openProduct(\''+p.id+'\')">'+
                (isDalali?'Maelezo Zaidi':'Quick View')+'</button></div>'
          + '</div>'
@@ -1266,8 +1392,16 @@ function openProduct(productId) {
   MODAL_QTY = 1;
   document.getElementById('modal-qty').textContent = 1;
 
+  // ── Dynamic SEO: update title + OG for this product (helps when shared) ──
+  var ogTitle = document.querySelector('meta[property="og:title"]');
+  var ogDesc  = document.querySelector('meta[property="og:description"]');
+  var pgTitle = document.querySelector('title');
+  if (ogTitle) ogTitle.setAttribute('content', p.name + ' | Arnorex e-Market');
+  if (ogDesc)  ogDesc.setAttribute('content', (p.description||'').substring(0,160) + ' — ' + fmtPrice(p.price));
+  if (pgTitle) pgTitle.textContent = p.name + ' | Arnorex e-Market';
+
   var imgs = p.images || (p.image ? [p.image] : []);
-  var mainImg = imgs[0] || 'https://via.placeholder.com/500x500/242529/f0a500?text=Product';
+  var mainImg = imgs[0] || 'https://via.placeholder.com/500x500/242529/ff9900?text=Product';
 
   document.getElementById('modal-name').textContent = p.name || '';
   document.getElementById('modal-price').textContent = fmtPrice(p.price);
@@ -1328,6 +1462,9 @@ function openProduct(productId) {
 function closeProductModal() {
   document.getElementById('product-modal').classList.remove('open');
   document.body.style.overflow = '';
+  // Reset title back to default
+  var pgTitle = document.querySelector('title');
+  if (pgTitle) pgTitle.textContent = "Arnorex e-Market | Tanzania's Premium Online Store — Electronics, Plots & Vehicles";
 }
 
 function switchModalImg(thumb, url) {
@@ -1792,6 +1929,61 @@ function toast(msg, isErr) {
 }
 
 // ══════════════════════════════════════════════════════
+//  LIKE SYSTEM
+// ══════════════════════════════════════════════════════
+
+function toggleLike(productId, btn) {
+  LIKED_PRODUCTS[productId] = !LIKED_PRODUCTS[productId];
+  // Persist to localStorage
+  try { localStorage.setItem('arnorex_likes', JSON.stringify(LIKED_PRODUCTS)); } catch(e){}
+  if (LIKED_PRODUCTS[productId]) {
+    btn.classList.add('liked');
+    btn.textContent = '♥';
+    toast('❤ Added to favourites!');
+  } else {
+    btn.classList.remove('liked');
+    btn.textContent = '♥';
+    toast('Removed from favourites');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  SHARE — Web Share API (native on mobile) with fallback
+// ══════════════════════════════════════════════════════
+
+function shareProduct(productId) {
+  var p = ALL_PRODUCTS.find(function(x){ return x.id === productId; });
+  if (!p) return;
+  var shareUrl  = window.location.href.split('?')[0] + '?p=' + productId;
+  var shareText = p.category === 'dalali'
+    ? 'Angalia hii kwenye Dalali Mtandaoni — ' + p.name + ' — ' + fmtPrice(p.price) + '. Tazama zaidi: '
+    : 'Check out ' + p.name + ' on Arnorex e-Market — ' + fmtPrice(p.price) + '. Shop here: ';
+  if (navigator.share) {
+    // Native Web Share API — opens WhatsApp, Instagram etc on mobile
+    navigator.share({
+      title: p.name + ' | Arnorex e-Market',
+      text:  shareText,
+      url:   shareUrl
+    }).then(function(){ toast('✓ Shared successfully!'); })
+      .catch(function(err){ if (err.name !== 'AbortError') copyShareLink(shareUrl); });
+  } else {
+    // Desktop fallback — copy link
+    copyShareLink(shareUrl);
+  }
+}
+
+function copyShareLink(url) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(function(){ toast('🔗 Link copied to clipboard!'); });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = url; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    toast('🔗 Link copied!');
+  }
+}
+
+// ══════════════════════════════════════════════════════
 //  AUTO-SLIDER / CROSSFADE ENGINE
 //  Cycles through multiple images on each card every 4s
 // ══════════════════════════════════════════════════════
@@ -1865,4 +2057,4 @@ document.addEventListener('keydown', function(e) {
 // Prevent modal scroll propagation
 document.getElementById('product-modal').addEventListener('wheel', function(e){ e.stopPropagation(); });
 </script>
-  </html>
+                                    </html>
