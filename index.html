@@ -802,39 +802,32 @@ input,select,textarea{outline:none}
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
-     JAVASCRIPT — All modules unified
-══════════════════════════════════════════════════════════════ -->
-<!-- ══════════════════════════════════════════════════════════════
-     FIREBASE v10 MODULAR SDK — Arnorex e-Market
-     Initialised as <script type="module"> for ESM compatibility.
-     Exposes window._fb and window._currentUser for cross-module use.
+     FIREBASE v10 — ESM module (loads async, non-blocking)
 ══════════════════════════════════════════════════════════════ -->
 <script type="module">
-'use strict';
+/* ═══════════════════════════════════════════════════════════════
+   ARNOREX FIREBASE v10 — Production-hardened module
+   Fixes: top-level await crash, redirect flow, mobile auth,
+          Netlify compatibility, defensive null guards.
+═══════════════════════════════════════════════════════════════ */
 
-/* ─────────────────────────────────────────────────────────────
-   1. IMPORTS — Firebase v10 modular (CDN ESM)
-───────────────────────────────────────────────────────────── */
+/* ─── 1. IMPORTS ────────────────────────────────────────────── */
 import { initializeApp }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {
   getFirestore,
-  collection, getDocs, addDoc, updateDoc, deleteDoc, doc,
-  query, orderBy, limit, onSnapshot, serverTimestamp,
+  collection, getDocs, addDoc as fsAddDoc,
+  updateDoc as fsUpdateDoc, deleteDoc as fsDeleteDoc,
+  doc, query, orderBy, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
-  getAuth,
-  GoogleAuthProvider,
+  getAuth, GoogleAuthProvider,
   signInWithPopup, signInWithRedirect, getRedirectResult,
-  signOut, onAuthStateChanged,
+  signOut as fsSignOut, onAuthStateChanged,
   browserLocalPersistence, setPersistence,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
-console.log('[Arnorex Firebase] SDK imported ✓');
-
-/* ─────────────────────────────────────────────────────────────
-   2. CONFIG & INIT
-───────────────────────────────────────────────────────────── */
+/* ─── 2. CONFIG & INIT ──────────────────────────────────────── */
 const firebaseConfig = {
   apiKey:            'AIzaSyAL26DIGBAVbmZOvDrEbM5DfVVGMGOZZ-U',
   authDomain:        'arnorex-emarket.firebaseapp.com',
@@ -844,228 +837,183 @@ const firebaseConfig = {
   appId:             '1:278041147544:web:809779357b2ad69c5d78ed',
 };
 
-const app      = initializeApp(firebaseConfig);
-const db       = getFirestore(app);
-const auth     = getAuth(app);
-const provider = new GoogleAuthProvider();
-provider.setCustomParameters({ prompt: 'select_account' });
+let app, db, auth, provider;
+try {
+  app      = initializeApp(firebaseConfig);
+  db       = getFirestore(app);
+  auth     = getAuth(app);
+  provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  console.log('[Arnorex Firebase] Init ✓');
+} catch (e) {
+  console.error('[Arnorex Firebase] Init failed:', e);
+  // Signal failure so UI can fall back gracefully
+  window._fb = null;
+  window._currentUser = null;
+  document.dispatchEvent(new CustomEvent('fb:authchange', { detail: { user: null } }));
+  throw e; // stop module execution
+}
 
-console.log('[Arnorex Firebase] App + Firestore + Auth initialised ✓');
-
-/* ─────────────────────────────────────────────────────────────
-   3. ADMIN UIDs — add authorised Firebase UIDs here
-───────────────────────────────────────────────────────────── */
+/* ─── 3. ADMIN UIDs ─────────────────────────────────────────── */
+// Add your Firebase UID here after first sign-in:
+// Open DevTools console → type: window._currentUser.uid
 const ADMIN_UIDS = new Set([
-  // 'REPLACE_WITH_YOUR_FIREBASE_UID',
+  // 'PASTE_YOUR_UID_HERE',
 ]);
-const isAdmin = uid => ADMIN_UIDS.has(uid);
 
-/* ─────────────────────────────────────────────────────────────
-   4. FIRESTORE CRUD HELPERS
-───────────────────────────────────────────────────────────── */
+/* ─── 4. FIRESTORE CRUD ─────────────────────────────────────── */
 const FB_CRUD = {
-  /** Fetch all docs in a collection, returns array of {id, ...data} */
   async getAll(col) {
     try {
       const snap = await getDocs(collection(db, col));
-      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      console.log(`[Arnorex Firestore] getAll(${col}) → ${docs.length} docs`);
-      return docs;
+      const result = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      console.log(`[Firestore] getAll(${col}) → ${result.length}`);
+      return result;
     } catch (err) {
-      console.error(`[Arnorex Firestore] getAll(${col}) failed:`, err);
+      console.error(`[Firestore] getAll(${col}):`, err.code, err.message);
       return [];
     }
   },
-
-  /** Add a new document; returns {id, ...data} */
   async addDoc(col, data) {
-    try {
-      const payload = { ...data, ts: serverTimestamp() };
-      const ref = await addDoc(collection(db, col), payload);
-      console.log(`[Arnorex Firestore] addDoc(${col}) → ${ref.id}`);
-      return { id: ref.id, ...payload };
-    } catch (err) {
-      console.error(`[Arnorex Firestore] addDoc(${col}) failed:`, err);
-      throw err;
-    }
+    const payload = { ...data, ts: serverTimestamp() };
+    const ref = await fsAddDoc(collection(db, col), payload);
+    console.log(`[Firestore] addDoc → ${ref.id}`);
+    return { id: ref.id, ...data };
   },
-
-  /** Update an existing document by ID */
   async updateDoc(col, id, data) {
-    try {
-      await updateDoc(doc(db, col, id), { ...data, updatedAt: serverTimestamp() });
-      console.log(`[Arnorex Firestore] updateDoc(${col}/${id}) ✓`);
-    } catch (err) {
-      console.error(`[Arnorex Firestore] updateDoc(${col}/${id}) failed:`, err);
-      throw err;
-    }
+    await fsUpdateDoc(doc(db, col, id), { ...data, _upd: serverTimestamp() });
+    console.log(`[Firestore] updateDoc ${col}/${id} ✓`);
   },
-
-  /** Delete a document by ID */
   async deleteDoc(col, id) {
-    try {
-      await deleteDoc(doc(db, col, id));
-      console.log(`[Arnorex Firestore] deleteDoc(${col}/${id}) ✓`);
-    } catch (err) {
-      console.error(`[Arnorex Firestore] deleteDoc(${col}/${id}) failed:`, err);
-      throw err;
-    }
-  },
-
-  /**
-   * Real-time listener — calls cb(docs[]) on every change.
-   * Returns an unsubscribe function.
-   */
-  onSnapshot(col, cb) {
-    const q = query(collection(db, col), orderBy('ts', 'desc'));
-    return onSnapshot(q, snap => {
-      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      console.log(`[Arnorex Firestore] onSnapshot(${col}) → ${docs.length} docs`);
-      cb(docs);
-    }, err => {
-      console.error(`[Arnorex Firestore] onSnapshot(${col}) error:`, err);
-    });
+    await fsDeleteDoc(doc(db, col, id));
+    console.log(`[Firestore] deleteDoc ${col}/${id} ✓`);
   },
 };
 
-/* ─────────────────────────────────────────────────────────────
-   5. AUTH HELPERS
-───────────────────────────────────────────────────────────── */
-const FB_AUTH = {
-  /** Sign in with Google. Falls back to redirect on mobile if popup blocked. */
-  async signInWithGoogle() {
-    try {
-      await setPersistence(auth, browserLocalPersistence);
-      const result = await signInWithPopup(auth, provider);
-      console.log('[Arnorex Auth] Popup sign-in success:', result.user.email);
-      return result.user;
-    } catch (err) {
-      if (err.code === 'auth/popup-blocked' ||
-          err.code === 'auth/popup-closed-by-user' ||
-          err.code === 'auth/cancelled-popup-request') {
-        console.warn('[Arnorex Auth] Popup blocked — falling back to redirect');
-        await signInWithRedirect(auth, provider);
-        return null; // page will redirect
-      }
-      console.error('[Arnorex Auth] signInWithGoogle failed:', err);
-      throw err;
+/* ─── 5. AUTH HELPERS ───────────────────────────────────────── */
+// Mobile Chrome: popups are often blocked. Strategy:
+// 1. Try popup first (works on desktop + most Android)
+// 2. On any popup error → immediately use redirect flow
+// 3. On page load, getRedirectResult catches the return
+async function signInWithGoogle() {
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+    const result = await signInWithPopup(auth, provider);
+    console.log('[Auth] Popup success:', result.user.email);
+    return result.user;
+  } catch (err) {
+    const REDIRECT_CODES = new Set([
+      'auth/popup-blocked',
+      'auth/popup-closed-by-user',
+      'auth/cancelled-popup-request',
+      'auth/operation-not-supported-in-this-environment',
+    ]);
+    if (REDIRECT_CODES.has(err.code)) {
+      console.warn('[Auth] Popup failed (' + err.code + ') → redirect');
+      // Store intent so we can show a "completing sign-in" message on return
+      try { sessionStorage.setItem('_arx_redirect_pending', '1'); } catch(_) {}
+      await signInWithRedirect(auth, provider);
+      return null;
     }
-  },
-
-  async signOut() {
-    try {
-      await signOut(auth);
-      console.log('[Arnorex Auth] Signed out ✓');
-    } catch (err) {
-      console.error('[Arnorex Auth] Sign-out failed:', err);
-    }
-  },
-};
-
-/* ─────────────────────────────────────────────────────────────
-   6. GLOBAL NAMESPACE — window._fb
-   Exposes SDK primitives and helpers for use in the
-   classic (non-module) <script> block below.
-───────────────────────────────────────────────────────────── */
-window._fb = {
-  // Raw SDK instances
-  app, db, auth, provider,
-  // Firestore helpers
-  ...FB_CRUD,
-  // Auth helpers
-  signInWithGoogle: FB_AUTH.signInWithGoogle,
-  signOut: FB_AUTH.signOut,
-  // Firestore primitives (for advanced use)
-  _fs: { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit, onSnapshot, serverTimestamp },
-};
-
-window._currentUser = null; // populated by onAuthStateChanged below
-
-console.log('[Arnorex Firebase] window._fb namespace ready ✓');
-
-/* ─────────────────────────────────────────────────────────────
-   7. HANDLE REDIRECT RESULT (mobile sign-in flow)
-───────────────────────────────────────────────────────────── */
-try {
-  const redirectResult = await getRedirectResult(auth);
-  if (redirectResult?.user) {
-    console.log('[Arnorex Auth] Redirect sign-in complete:', redirectResult.user.email);
+    console.error('[Auth] signInWithGoogle error:', err.code, err.message);
+    throw err;
   }
-} catch (err) {
-  console.error('[Arnorex Auth] getRedirectResult error:', err);
 }
 
-/* ─────────────────────────────────────────────────────────────
-   8. AUTH STATE LISTENER
-   Updates window._currentUser, drives UI state.
-───────────────────────────────────────────────────────────── */
+async function doSignOut() {
+  await fsSignOut(auth);
+  console.log('[Auth] Signed out');
+}
+
+/* ─── 6. GLOBAL NAMESPACE ───────────────────────────────────── */
+window._fb = {
+  app, db, auth, provider,
+  // Firestore
+  ...FB_CRUD,
+  // Auth
+  signInWithGoogle,
+  signOut: doSignOut,
+  isAdmin: uid => ADMIN_UIDS.has(uid),
+};
+window._currentUser = null;
+console.log('[Arnorex Firebase] window._fb ready ✓');
+
+/* ─── 7. REDIRECT RESULT HANDLER ────────────────────────────── */
+// Wrapped in async IIFE — NO top-level await (crashes some envs)
+(async () => {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result && result.user) {
+      console.log('[Auth] Redirect sign-in complete:', result.user.email);
+      try { sessionStorage.removeItem('_arx_redirect_pending'); } catch(_) {}
+      // Notify UI of successful redirect sign-in
+      document.dispatchEvent(new CustomEvent('fb:redirectcomplete', {
+        detail: { user: result.user }
+      }));
+    }
+  } catch (err) {
+    // Network errors and credential mismatches are common — absorb them
+    console.warn('[Auth] getRedirectResult:', err.code || err.message);
+    try { sessionStorage.removeItem('_arx_redirect_pending'); } catch(_) {}
+  }
+})();
+
+/* ─── 8. AUTH STATE LISTENER ────────────────────────────────── */
 onAuthStateChanged(auth, user => {
   window._currentUser = user || null;
-
   if (user) {
-    console.log('[Arnorex Auth] Signed in —', user.email, '| UID:', user.uid);
+    console.log('[Auth] Active session — uid:', user.uid, '| admin:', ADMIN_UIDS.has(user.uid));
   } else {
-    console.log('[Arnorex Auth] Signed out (no active session)');
+    console.log('[Auth] No session');
   }
-
-  // Dispatch a DOM event so the classic script block can react
   document.dispatchEvent(new CustomEvent('fb:authchange', { detail: { user } }));
 });
 
-/* ─────────────────────────────────────────────────────────────
-   9. PRODUCT LOADER
-   Fetches Firestore `products` collection and populates Data.
-   Falls back to SEED data if Firestore is empty or unreachable.
-───────────────────────────────────────────────────────────── */
-async function loadFirestoreProducts() {
+/* ─── 9. FIRESTORE PRODUCT LOADER ───────────────────────────── */
+// Wrapped in async IIFE — no top-level await
+(async () => {
   console.log('[Arnorex Products] Fetching from Firestore...');
   try {
-    const docs = await FB_CRUD.getAll('products');
-
-    if (!docs.length) {
-      console.warn('[Arnorex Products] Firestore collection empty — using SEED data');
+    const raw = await FB_CRUD.getAll('products');
+    if (!raw.length) {
+      console.warn('[Arnorex Products] Collection empty — SEED data will be used');
       return;
     }
-
-    // Normalise Firestore doc shape to match the app data model
-    const normalised = docs.map(d => ({
+    const normalised = raw.map(d => ({
       id:    d.id,
-      name:  d.name   || '',
-      cat:   d.cat    || 'other',
+      name:  d.name  || '',
+      cat:   d.cat   || 'other',
       price: Number(d.price) || 0,
-      orig:  d.orig   ? Number(d.orig) : null,
+      orig:  d.orig  ? Number(d.orig) : null,
       imgs:  Array.isArray(d.imgs) ? d.imgs : (d.img ? [d.img] : []),
-      desc:  d.desc   || '',
-      badge: d.badge  || null,
-      stock: d.stock  || 'instock',
-      ts:    d.ts?.toMillis ? d.ts.toMillis() : (d.ts || Date.now()),
+      desc:  d.desc  || '',
+      badge: d.badge || null,
+      stock: d.stock || 'instock',
+      ts:    d.ts && d.ts.toMillis ? d.ts.toMillis() : (Number(d.ts) || Date.now()),
     }));
+    console.log(`[Arnorex Products] ${normalised.length} products from Firestore ✓`);
 
-    console.log(`[Arnorex Products] Loaded ${normalised.length} products from Firestore ✓`);
-
-    // Inject into Data module (overrides SEED / localStorage)
-    // We wait for Data to be defined (classic script runs after this module)
+    // Poll for Data module readiness (classic script may not have run yet)
+    let attempts = 0;
     const inject = () => {
-      if (typeof Data !== 'undefined' && Data._setProducts) {
+      attempts++;
+      if (typeof Data !== 'undefined' && typeof Data._setProducts === 'function') {
         Data._setProducts(normalised);
         document.dispatchEvent(new CustomEvent('prodschanged'));
-        console.log('[Arnorex Products] Injected into Data module ✓');
-      } else {
-        // Data not yet ready — retry on next tick
+        console.log('[Arnorex Products] Injected into Data ✓');
+      } else if (attempts < 60) {
         requestAnimationFrame(inject);
+      } else {
+        console.warn('[Arnorex Products] Data module not found after 60 frames — giving up');
       }
     };
     inject();
-
   } catch (err) {
-    console.error('[Arnorex Products] Firestore fetch failed — falling back to local data:', err);
+    console.error('[Arnorex Products] Fetch failed — using local data:', err.code || err.message);
   }
-}
+})();
 
-// Kick off product load (non-blocking)
-loadFirestoreProducts();
-
-console.log('[Arnorex Firebase] Module fully loaded ✓');
+console.log('[Arnorex Firebase] Module boot complete ✓');
 </script>
 
 <script>
@@ -1368,7 +1316,7 @@ const Modal = (() => {
   document.querySelectorAll('.moverlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeAll();}));
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll();});
   // Close buttons
-  ['Product','Cart','Order','Fav','About','Admin'].forEach(n=>{
+  ['Product','Cart','Order','Fav','About','Admin','Auth'].forEach(n=>{
     document.getElementById('m'+n+'Close')?.addEventListener('click',()=>close('m'+n));
   });
   return {open,close,closeAll};
@@ -1386,7 +1334,7 @@ const Hero = (() => {
     el.className='hero-slide phase-text';
     el.dataset.id=s.id;
     el.innerHTML=`
-      <img class="hero-bg" src="${H.san(s.img)}" alt="${H.san(s.tag)}" loading="lazy"/>
+      <img class="hero-bg" src="${H.san(s.img)}" alt="${H.san(s.tag)}"/>
       <div class="hero-grad"></div>
       <div class="hero-txt">
         <p class="hero-tag">${H.san(s.tag)}</p>
@@ -1508,20 +1456,23 @@ const Cards = (() => {
   const SVG_HEART_OUT = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
   const SVG_HEART_IN  = `<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
 
-  // Shared lazy image observer
-  const observer = window.IntersectionObserver ? new IntersectionObserver(entries=>{
-    entries.forEach(e=>{
-      if(!e.isIntersecting)return;
-      const img=e.target;
-      if(img.dataset.src){
-        img.src=img.dataset.src;
+  // Lazy image observer — increased rootMargin so images load well before scroll reaches them
+  const observer = window.IntersectionObserver ? new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const img = e.target;
+      const src = img.dataset.src;
+      if (src) {
+        img.src = src;
         img.removeAttribute('data-src');
-        img.onload=()=>img.classList.add('vis');
-        img.onerror=()=>img.classList.add('vis');
+        img.onload  = () => img.classList.add('vis');
+        img.onerror = () => { img.classList.add('vis'); img.src = ''; };
+      } else {
+        img.classList.add('vis');
       }
       observer.unobserve(img);
     });
-  },{rootMargin:'250px 0px'}) : null;
+  }, { rootMargin: '900px 0px', threshold: 0 }) : null;
 
   function build(p){
     const liked=Data.isFav(p.id);
@@ -1541,7 +1492,7 @@ const Cards = (() => {
 
     el.innerHTML=`
       <div class="pcard-img-wrap">
-        <img class="pcard-img" data-src="${H.san(p.imgs?.[0]||'')}" alt="${H.san(p.name)}" loading="lazy"/>
+        <img class="pcard-img" data-src="${H.san(p.imgs?.[0]||'')}" alt="${H.san(p.name)}"/>
         ${badge}
         <button class="plike${liked?' on':''}" data-like="${p.id}" aria-label="Save">
           ${liked?SVG_HEART_IN:SVG_HEART_OUT}
@@ -1559,9 +1510,15 @@ const Cards = (() => {
     `;
 
     // Lazy image
-    const img=el.querySelector('.pcard-img');
-    if(observer) observer.observe(img);
-    else{img.src=img.dataset.src||'';img.classList.add('vis');}
+    const img = el.querySelector('.pcard-img');
+    if (observer) {
+      observer.observe(img);
+    } else {
+      // No IntersectionObserver — load immediately
+      const src = img.dataset.src;
+      if (src) { img.src = src; img.removeAttribute('data-src'); }
+      img.classList.add('vis');
+    }
 
     // Like button
     const likeBtn=el.querySelector('.plike');
@@ -1828,4 +1785,35 @@ const CartMod = (() => {
       e.preventDefault();
       const name=document.getElementById('oName')?.value.trim();
       const phone=document.getElementById('oPhone')?.value.trim();
-      const addr=document.getElementB
+      const addr=document.getElementById('oAddr')?.value.trim();
+      const notes=document.getElementById('oNotes')?.value.trim();
+      if(!name||!phone||!addr){H.toast('Please fill all required fields');return;}
+      const msg=buildOrderMsg(name,phone,addr,notes).replace(/\*/g,'');
+      window.open(`mailto:arnoldelikunda@gmail.com?subject=Order from ${encodeURIComponent(name)}&body=${encodeURIComponent(msg)}`);
+    });
+  }
+
+  return {init,openCart,updateBadge,renderCart};
+})();
+
+/* ─────────────────────────────────────────────────────────────
+   SEARCH
+───────────────────────────────────────────────────────────── */
+const Search = (() => {
+  let open=false;
+
+  function show(results){
+    const d=document.getElementById('srchDrop');
+    if(!d)return;
+    if(!results.length){d.hidden=true;open=false;return;}
+    const f=document.createDocumentFragment();
+    results.forEach(p=>{
+      const el=document.createElement('div');
+      el.className='srch-item';
+      el.setAttribute('role','option');
+      el.setAttribute('tabindex','0');
+      const img=document.createElement('img');
+      img.className='srch-item-img';img.src=p.imgs?.[0]||'';img.alt=p.name;img.loading='lazy';
+      const info=document.createElement('div');
+      info.innerHTML=`<p class="srch-item-name">${H.san(p.name)}</p><p class="srch-item-price">${H.fmt(p.price)}</p>`;
+      el.appendChild(img);el.a
